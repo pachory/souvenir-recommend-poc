@@ -139,9 +139,12 @@ export async function getRecommendations(
   // 実際のレスポンス構造に応じて調整が必要
   if (data.data?.outputs?.result) {
     const parsed = JSON.parse(data.data.outputs.result);
-    return { recommendation: parsed.recommendation };
+
+    // recommendationが存在し、配列であることを確認
+    if (parsed.recommendation && Array.isArray(parsed.recommendation)) {
+      return { recommendation: parsed.recommendation };
+    }
   }
 
   throw new Error('Invalid response format from Dify API');
 }
-

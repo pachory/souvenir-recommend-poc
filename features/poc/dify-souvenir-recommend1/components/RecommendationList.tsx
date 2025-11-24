@@ -9,7 +9,7 @@ interface RecommendationListProps {
 export function RecommendationList({
   recommendations,
 }: RecommendationListProps) {
-  if (recommendations.length === 0) {
+  if (!recommendations || recommendations.length === 0) {
     return (
       <div className="text-center text-zinc-600 dark:text-zinc-400 py-8">
         おすすめ商品が見つかりませんでした。
