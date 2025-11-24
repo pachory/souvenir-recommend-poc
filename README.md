@@ -27,6 +27,48 @@ LLM が回答内容から「誰に・どんなシーンで・どんな特徴の�
 その推定内容をもとにナレッジベースで検索し、
 おすすめ商品を上位5件まで JSON 形式で返す。
 
+#### Dify のレコメンド提案ワークフローの req/res の型
+
+##### Request
+
+```typescript
+// 「はい」or「いいえ」の想定
+export type YesNoAnswer = 'はい' | 'いいえ';
+
+export interface Question {
+  id: string;          // 例: "q1"
+  text: string;        // 例: "贈る相手は女性ですか？"
+  category: string;    // 例: "recipient", "purpose", "price_range" など
+  priority: number;    // 重要度（数値が小さいほど重要）
+}
+
+export interface AnswerItem {
+  question: Question;
+  answer: YesNoAnswer;
+}
+
+// レコメンド提案ワークフローへのリクエストボディ
+export interface RecommendRequest {
+  answers: AnswerItem[];
+}
+```
+
+#### Response
+
+```typescript
+export interface RecommendationItem {
+  product_id: string;
+  name: string;
+  reason: string;
+  store_name: string;
+  store_url: string;
+}
+
+export interface RecommendResponse {
+  recommendation: RecommendationItem[];
+}
+```
+
 ### Web アプリケーションへの組み込み
 
 Web アプリケーション側は質問生成ワークフローの JSON を元に質問をチャット形式で10問回答させる。
