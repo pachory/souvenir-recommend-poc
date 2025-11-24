@@ -19,9 +19,9 @@ alwaysApply: false
 
 ## 各種 PoC の要件定義
 
-### PoC1: Dify Workflow を利用したチャット形式でのお土産レコメンド
+### PoC1: Dify Workflow を利用したアンケートUI形式でのお土産レコメンド
 
-Dify Workflow を利用したチャット形式でのお土産レコメンドを実装する。
+Dify Workflow を利用したアンケートUI形式でのお土産レコメンドを実装する。
 2つの Dify ワークフローアプリケーションを Web アプリケーションから API 利用する方式で構成。
 
 ### 質問生成ワークフロー
@@ -30,6 +30,27 @@ Dify Workflow を利用したチャット形式でのお土産レコメンドを
 ナレッジベースの構造（カテゴリ、価格帯、相手の属性、用途など）を参照し、
 商品ジャンルに依存しない汎用的な質問を作成する。
 質問は JSON で返され、フロント側で表示・回答収集に使われる。
+
+#### Dify の質問生成ワークフローの req/res の型
+
+##### Request
+
+なし
+
+##### Response
+
+```typescript
+export interface GeneratedQuestion {
+  id: string;
+  text: string;
+  category: string;
+  priority: number;
+}
+
+export interface QuestionGenerateResponse {
+  questions: GeneratedQuestion[];
+}
+```
 
 ### レコメンド提案ワークフロー
 
@@ -82,7 +103,7 @@ export interface RecommendResponse {
 
 ### Web アプリケーションへの組み込み
 
-Web アプリケーション側は質問生成ワークフローの JSON を元に質問をチャット形式で10問回答させる。
+Web アプリケーション側は質問生成ワークフローの JSON を元に質問をアンケートUI形式で10問回答させる。
 回答は自由入力ではなく、「はい、いいえ」の2択で回答させる。
 回答が終わったら、レコメンド提案ワークフローの API を呼び出し、パラメーターに質問と回答の JSON を渡しておすすめ商品の JSON を取得する。
 取得したおすすめ商品の JSON を元に商品一覧を表示する。
