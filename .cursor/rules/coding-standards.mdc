@@ -1,0 +1,97 @@
+---
+alwaysApply: true
+---
+
+# コーディング規約
+
+このプロジェクトは Next.js 16（App Router）を用いた「一般公開・作り捨て前提のPoC」アプリである。
+手軽さを最優先しつつ、PoC増加に耐える最小の保守性を確保する。
+
+---
+
+## 1. Routing / Directory Rules
+
+1. PoCページは必ず動的ルートで提供する。
+   - `app/poc/[slug]/page.tsx` を唯一のPoC入口とする。
+   - 個別PoCごとの `app/poc/<slug>/page.tsx` の追加は禁止。
+
+2. PoCの追加は Feature を追加して registry に登録するだけで完結させる。
+   - `features/poc/<slug>` を作成
+   - `features/poc/registry.ts` に登録
+   - `features/menu/data/pocs.ts` に一覧定義を追加
+
+3. トップのPoC一覧は静的配列で管理する。
+   - PoC一覧は `features/menu/data/pocs.ts` の `pocs` 配列のみを参照元とする。
+   - トップページ側で PoC をハードコードしない。
+
+---
+
+## 2. Layering & Dependency Direction Rules
+
+4. 依存方向は一方通行のみとする（逆流禁止）。
+   - `app → features → lib`
+   - 例：`features` が `app` を import する、`lib` が `features` を import するのは禁止。
+
+5. `app/` はルーティングとページ表示の薄い層に限定する。
+   - ビジネス/データ取得ロジックは禁止。
+   - ロジックは `features/**/services` または `lib/**` に移動する。
+
+6. Feature間共有が2回以上発生したら昇格する。
+   - 共有UIは `components/ui` へ
+   - 共有ロジック/通信基盤は `lib` へ
+   - 「とりあえずコピペ」は1回まで許容、2回目で必ず昇格。
+
+---
+
+## 3. Server / Client Boundary Rules (Next.js App Router)
+
+7. `page.tsx` と `layout.tsx` は原則 Server Component とする。
+   - `"use client"` を付けない。
+
+8. `"use client"` は UIインタラクションが必要な最小単位にだけ付ける。
+   - フォーム、チャット入力、モーダル、ローカル状態が必要な部分のみ。
+   - 画面全体や page コンポーネントの Client 化は禁止。
+
+9. Client側の通信/状態管理は hooks に閉じ込める。
+   - `features/**/hooks` のみが `fetch` を実行してよい。
+   - UIコンポーネント内に直接 `fetch` を書かない。
+
+---
+
+## 4. API Usage Rules (Route Handlers)
+
+10. `app/api/**` を作ってよいのは次の条件のときのみ。
+    1) 外部APIキーを隠す必要がある  
+    2) 外部APIを複数叩いて1つに集約/整形したい  
+    3) ブラウザ（Client）から直接叩く必要がある
+
+11. 上記に当てはまらない場合は Server Component から外部APIへ直接アクセスする。
+    - PoCは API レイヤを増やさず直叩きを優先する。
+
+12. Route Handler (`app/api/**/route.ts`) は薄く保つ。
+    - 認可/入力チェック/ユースケース呼び出し/返却のみ。
+    - 重い処理や整形は `features/**/services` に寄せる。
+
+---
+
+## 5. Feature Structure Rules
+
+13. Featureの責務は次に限定する。
+    - `features/**/components` : Feature専用UI
+    - `features/**/hooks`      : Client状態/通信
+    - `features/**/services`   : 外部API取得/整形の薄いusecase
+    - `features/**/types.ts`   : Featureの型定義
+
+14. `services` は UI から独立した関数として保つ。
+    - React依存（JSX/Hook/Component import）禁止。
+    - UI層は services を直接書き換えない。
+
+---
+
+## 6. PoC Philosophy
+
+15. 本プロジェクトは作り捨てPoCである。
+    - 過度なドメイン分離/DDD/抽象化は禁止。
+    - ただし、上記ルールで定めた「破綻防止の最小整理」は必ず守る。
+
+---
