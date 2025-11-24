@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# お土産レコメンドアプリ PoC
 
-## Getting Started
+## 概要
 
-First, run the development server:
+チャット形式でお土産レコメンドを行うアプリケーションの PoC です。
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 技術スタック
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Next.js 16 (関連するライブラリは package.json を参照)
+- Dify API (LLM API)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## PoC1: Dify Workflow を利用したチャット形式でのお土産レコメンド
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2つのワークフローアプリケーションで構成。
 
-## Learn More
+### 質問生成ワークフロー
 
-To learn more about Next.js, take a look at the following resources:
+ユーザーに提示する 10個の yes/no 質問 を LLM で自動生成するワークフロー。
+ナレッジベースの構造（カテゴリ、価格帯、相手の属性、用途など）を参照し、
+商品ジャンルに依存しない汎用的な質問を作成する。
+質問は JSON で返され、フロント側で表示・回答収集に使われる。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### レコメンド提案ワークフロー
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+ユーザーの 質問と回答の JSON を入力として受け取り、
+LLM が回答内容から「誰に・どんなシーンで・どんな特徴の贈り物を探しているか」を推定。
+その推定内容をもとにナレッジベースで検索し、
+おすすめ商品を上位5件まで JSON 形式で返す。
 
-## Deploy on Vercel
+### Web アプリケーションへの組み込み
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Web アプリケーション側は質問生成ワークフローの JSON を元に質問をチャット形式で10問回答させる。
+回答は自由入力ではなく、「はい、いいえ」の2択で回答させる。
+回答が終わったら、レコメンド提案ワークフローの API を呼び出し、パラメーターに質問と回答の JSON を渡しておすすめ商品の JSON を取得する。
+取得したおすすめ商品の JSON を元に商品一覧を表示する。
